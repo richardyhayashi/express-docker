@@ -1,0 +1,25 @@
+services:
+  nginx:
+    image: nginx:1.27.0-alpine
+    container_name: ${NGINX_HOST}
+    restart: unless-stopped
+    ports:
+      - ${NGINX_PORT_OUT}:${NGINX_PORT}
+      - ${NGINX_SSL_OUT}:${NGINX_SSL}
+    volumes:
+      - ./etc/nginx/conf.d:/etc/nginx/conf.d:ro
+
+  express-app:
+    image: express-app:1.0.0
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ${SERVER_HOST}
+    restart: unless-stopped
+    #ports:
+    #  - ${SERVER_PORT_OUT}:${SERVER_PORT}
+    environment:
+      - NODE_ENV=development
+      - SERVER_PORT=${SERVER_PORT}
+    depends_on:
+      - nginx
