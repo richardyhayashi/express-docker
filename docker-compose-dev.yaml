@@ -1,0 +1,34 @@
+services:
+  nginx:
+    image: nginx:1.27.0-alpine
+    container_name: ${NGINX_HOST}_c
+    restart: unless-stopped
+    ports:
+      - ${NGINX_PORT_OUT}:${NGINX_PORT}
+      - ${NGINX_SSL_OUT}:${NGINX_SSL}
+    volumes:
+      - ./etc/nginx/conf.d:/etc/nginx/conf.d:ro
+
+  express-app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+      args:
+        # Use user id & group id in .env
+        USER_ID: ${USER_ID:-0}
+        GROUP_ID: ${GROUP_ID:-0}
+    #user: ${USER_ID}:${GROUP_ID}
+    restart: unless-stopped
+    #ports:
+    #  - ${EXPRESS_PORT_OUT}:${EXPRESS_PORT}
+    environment:
+      - NODE_ENV=development
+      - EXPRESS_PORT=${EXPRESS_PORT}
+      # Set the logins and groups identical to host environment
+      - /etc/group:/etc/group:ro
+      - /etc/passwd:/etc/passwd:ro
+      - /etc/shadow:/etc/shadow:ro
+    #env_file:
+    #  - ./.env
+    depends_on:
+      - nginx
